@@ -4,14 +4,16 @@ from scipy.misc import factorial
 import matplotlib.pyplot as plt
 from pdb import set_trace
 from argparse import ArgumentParser
+import Utilities.python.prettyjson as prettyjson
+import os
 #import itertools
 
 # import prettyjson file from parent dir
-import os,sys,inspect
-currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-parentdir = os.path.dirname(currentdir)
-sys.path.insert(0,parentdir)
-import prettyjson as prettyjson
+#import os,sys,inspect
+#currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+#parentdir = os.path.dirname(currentdir)
+#sys.path.insert(0,parentdir)
+#import prettyjson as prettyjson
 
 parser = ArgumentParser()
 parser.add_argument('--lepton', help='Select between muons or electrons')
@@ -19,6 +21,8 @@ parser.add_argument('--njets', help='Select between 3 or 4+ jet categories')
 
 args = parser.parse_args()
 
+input_dir = '%s/inputs/htt' % os.environ['ANALYSES_PROJECT']
+output_dir = '%s/results/htt' % os.environ['ANALYSES_PROJECT']
 
 """
 created by Joseph Dulemba on September 14 2018
@@ -55,7 +59,7 @@ def negLogLikelihood(params, N_data, N_prompt, N_QCD):
 def indiv_yield( lepton, njets):
     ##open yields file corresponding to lepton type and number of jets
     fname = '%s_3Jets_yields.json' % lepton if njets == '3' else '%s_4PJets_yields.json' % lepton
-    yields = prettyjson.loads(open('Yields/%s' % fname).read())
+    yields = prettyjson.loads( open( '%s/%s' % (input_dir, fname) ).read() )
     
     
     ## create lists of values for data, prompt, and QCD for each region
@@ -92,11 +96,12 @@ else:
 	    ml_yield = indiv_yield(lep, njet)
 	    ml_yields[lep][njet] = ml_yield
 
-    res_fname = 'Yields/mlFit_yields.json'
-    with open(res_fname, 'w') as f:
+    #set_trace()
+    res_fname = 'mlFit_yields.json'
+    with open( '%s/%s' %(output_dir, res_fname), 'w' ) as f:
 	f.write(prettyjson.dumps(ml_yields))    
 
-    print '\n-----   resulting QCD yields written to %s   -----\n' % res_fname
+    print '\n-----   resulting QCD yields written to %s/%s   -----\n' % (output_dir, res_fname)
 
 
 ### attempt to estimate errors from minimization (currently dosen't work)

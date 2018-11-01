@@ -1,0 +1,8 @@
+*.root
+inputs/*
+results/*
+*.pyc
+*.png
+*.pdf
+*.txt
+
