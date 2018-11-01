@@ -6,14 +6,6 @@ from pdb import set_trace
 from argparse import ArgumentParser
 import Utilities.python.prettyjson as prettyjson
 import os
-#import itertools
-
-# import prettyjson file from parent dir
-#import os,sys,inspect
-#currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-#parentdir = os.path.dirname(currentdir)
-#sys.path.insert(0,parentdir)
-#import prettyjson as prettyjson
 
 parser = ArgumentParser()
 parser.add_argument('--lepton', help='Select between muons or electrons')

@@ -3,7 +3,7 @@ import rootpy.plotting as plotting
 from rootpy.plotting import views, Graph, Hist, Hist2D
 from rootpy import asrootpy
 import numpy as np
-from PlotTools_python_views_RebinView import RebinView
+from RebinView import RebinView
 
 def stack_plots(lists):
 
