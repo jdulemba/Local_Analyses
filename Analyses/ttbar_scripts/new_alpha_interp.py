@@ -2,7 +2,8 @@
 This file is meant to find median alpha values, fit them as alpha(mthad, mtt),
 and dumping the resulting fit values for each bin of 173.1/mthad and mtt.
 '''
-import os, glob, sys, inspect
+import os, sys
+#import os, glob, sys, inspect
 from rootpy.io import root_open
 from rootpy import asrootpy
 from pdb import set_trace
@@ -12,32 +13,30 @@ import ROOT
 import argparse
 import numpy as np
 from scipy import interpolate
-
-# import modules from parent dir
-currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-parentdir = os.path.dirname(currentdir)
-sys.path.insert(0,parentdir)
-import functions as fncts
-from PlotTools_python_views_RebinView import RebinView
-
+import Utilities.python.functions as fncts
+from Utilities.python.RebinView import RebinView
+import matplotlib
+import matplotlib.pyplot as plt
 
 ## initialize global variables
-jobid = os.getcwd()
-outdir = '%s/Plots' % jobid
-#project = os.environ['URA_PROJECT']
-#analyzer = 'ttbar_alpha_reco'
+input_dir = '%s/inputs/ttbar' % os.environ['ANALYSES_PROJECT']
+output_dir = '%s/results/ttbar' % os.environ['ANALYSES_PROJECT']
+
+in_fname = '%s/ttJets.root' % input_dir
+out_fname = '%s/alpha_hists.root' % output_dir # write to results/ttbar directory
+
 directory = '/'.join(['3J', 'nosys', 'Alpha_Correction', 'CORRECT_WJET_CORRECT_Bs'])
 ##
 
+
 ## find and open ttJets file
-results_files = filter(lambda x: 'ttJets.root' in x, os.listdir(jobid))
-if not results_files:
-    print "ttJets.root not found in %s.\n" % jobid
-results_file  = '%s/%s' % (jobid, results_files[0])
-myfile = root_open(results_file, 'read')
+if not os.path.isfile(in_fname):
+    print 'ttJets.root not found in %s!' % input_dir
+    sys.exit()
+
+myfile = root_open(in_fname, 'read')
 ##
 
-out_fname = '%s/alpha_hists' % outdir # write to $jobid/INPUT directory
 
 ## 3D hists
 fitvars = [
@@ -46,8 +45,12 @@ fitvars = [
     ('THad_M/Alpha_THad_M_Mtt_vs_Mthad_vs_Alpha'),
 ]
     ## create file to store hists for 'THad_E', 'THad_P', and 'THad_M'
-with root_open('%s.root' % out_fname, 'w') as out:# write to $jobid/INPUT directory
+with root_open( out_fname, 'w' ) as out:# write to results/ttbar directory
     out.cd()
+
+#set_trace()
+
+
 
 def fit_single_mtt_medians( medians, errors, xbins, output_xbins, fit_type ):
         ## create 1D hist to extract 1d or 2d fit parameters
@@ -68,9 +71,10 @@ def fit_single_mtt_medians( medians, errors, xbins, output_xbins, fit_type ):
     np_fit = np.polyfit( fit_xbins, valid_medians, fit_deg, w=np.reciprocal(valid_errors) )
     fitvals = np.poly1d(np_fit)( output_xbins )
 
-
     #set_trace()
     return fitvals
+
+
 
 def fit_binned_mtt_medians( medians, xbins, ybins , fit_type ):
         ## create 1D hist to extract 1d or 2d fit parameters
@@ -91,8 +95,6 @@ def fit_binned_mtt_medians( medians, xbins, ybins , fit_type ):
     #set_trace()
     fit_deg = 'linear' if fit_type=="pol1" else 'cubic'
     fit = interpolate.interp2d(fit_xbins, ybin_centers, valid_medians, kind=fit_deg)
-    #fit_deg = 1 if fit_type=="pol1" else 2
-    #fit = interpolate.interpolate.RectBivariateSpline(fit_xbins, fit_ybins, np.transpose(valid_medians), s=fit_deg )
 
     #set_trace()
     return fit
@@ -107,11 +109,15 @@ def write_alphas_to_root(fname='', medians=None, errors=None, xbins=None, ybins=
         print 'Only "pol1" and "pol2" are supported for fits right now!'
         sys.exit()
 
-    with root_open('%s.root' % fname, 'update') as out:
+    with root_open( fname, 'update' ) as out:
+
+        fig, ax = plt.subplots()
+        fig.suptitle('$\\alpha$ Fit Values')
 
         alpha_hist = 0
         #set_trace() 
-            ## fill alphas from fit parameters for entire mtt range
+
+        ## fill alphas from fit parameters for entire mtt range
         if np.ndim(medians) == 1:
             fitvals = fit_single_mtt_medians( medians=medians, errors=errors, xbins=xbins, output_xbins=output_xbins, fit_type=fit_func )
 
@@ -122,28 +128,47 @@ def write_alphas_to_root(fname='', medians=None, errors=None, xbins=None, ybins=
             for binx in range(alpha_hist.GetXaxis().GetFirst(), alpha_hist.GetXaxis().GetLast()+1):
                 alpha_hist[binx] = fitvals[binx-1]
 
-	    #set_trace()
+            plt.plot(output_xbins, fitvals, color='black')
+            ax.xaxis.grid(True, which='major')
+            ax.yaxis.grid(True, which='major')
+            plt.xlabel('$%s$' % hist.xaxis.title)
+            plt.ylabel('$%s$' % hist.zaxis.title.rstrip('#').replace('#', '\\'))
+            plt.tight_layout()
+            fig.savefig('%s/%s_AlphaFit.png' % (output_dir, hname) )
+            #set_trace()
 
-            ## fill alphas from fit parameters for single mtt bin
+        ## fill alphas from fit parameters for single mtt bin
         elif np.ndim(medians) == 2:
-	    interp_fit = fit_binned_mtt_medians( medians=medians, xbins=xbins, ybins=ybins, fit_type=fit_func )
-	    #set_trace()
+            interp_fit = fit_binned_mtt_medians( medians=medians, xbins=xbins, ybins=ybins, fit_type=fit_func )
+    	    #set_trace()
 
             alpha_hist = Hist2D(output_xbins, output_ybins, name=hname, title='#alpha Fit Values')
             alpha_hist.set_x_title(hist.xaxis.title)
             alpha_hist.set_y_title(hist.yaxis.title)
 
-	    #set_trace()
+	        #set_trace()
             for biny in range( alpha_hist.GetYaxis().GetFirst(), alpha_hist.GetYaxis().GetLast()+1 ):
                 for binx in range(alpha_hist.GetXaxis().GetFirst(), alpha_hist.GetXaxis().GetLast()+1):
                     alpha_hist[binx, biny] = interp_fit(output_xbins[binx-1], output_ybins[biny-1])
+
+
+            xnew, ynew = np.mgrid[output_xbins.min():output_xbins.max():500j, output_ybins.min():output_ybins.max():500j]
+            plt.pcolor( xnew, ynew, interp_fit(output_xbins, output_ybins).T )
+            plt.colorbar()
+            ax.xaxis.grid(True, which='major')
+            ax.yaxis.grid(True, which='major')
+            plt.xlabel('$%s$' % hist.xaxis.title)
+            plt.ylabel('$%s$' % hist.yaxis.title.rstrip('#').replace('#', '\\'))
+            fig.savefig('%s/%s_AlphaFit.png' % (output_dir, hname) )
+
+            #set_trace()
 
         else:
             print 'Something bad happened.'
             sys.exit()
 
         alpha_hist.Write()
-        print '\n%s written to %s.root' % (hname, fname)
+        print '\n%s written to %s' % (hname, fname)
 
 
 
