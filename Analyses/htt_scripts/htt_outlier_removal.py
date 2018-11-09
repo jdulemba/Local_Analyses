@@ -14,8 +14,8 @@ args = parser.parse_args()
 
 parity, mass, width = args.parity, args.mass, args.width
 
-input_dir = '%s/inputs/htt' % os.environ['ANALYSES_PROJECT']
-output_dir = '%s/results/htt' % os.environ['ANALYSES_PROJECT']
+input_dir = '%s/inputs/htt/%s' % (os.environ['ANALYSES_PROJECT'], os.environ['jobid'])
+output_dir = '%s/results/htt/%s' % (os.environ['ANALYSES_PROJECT'], os.environ['jobid'])
 
 fname = '%s/%s_%s_%s_limits_gathered.root' % (input_dir, parity, mass, width)
 #fname = 'A_600_2p5_limits_gathered'

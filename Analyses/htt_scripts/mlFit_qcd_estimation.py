@@ -13,8 +13,8 @@ parser.add_argument('--njets', help='Select between 3 or 4+ jet categories')
 
 args = parser.parse_args()
 
-input_dir = '%s/inputs/htt' % os.environ['ANALYSES_PROJECT']
-output_dir = '%s/results/htt' % os.environ['ANALYSES_PROJECT']
+input_dir = '%s/inputs/htt/%s' % (os.environ['ANALYSES_PROJECT'], os.environ['jobid'])
+output_dir = '%s/results/htt/%s' % (os.environ['ANALYSES_PROJECT'], os.environ['jobid'])
 
 """
 created by Joseph Dulemba on September 14 2018

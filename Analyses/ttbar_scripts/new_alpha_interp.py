@@ -19,8 +19,8 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 ## initialize global variables
-input_dir = '%s/inputs/ttbar' % os.environ['ANALYSES_PROJECT']
-output_dir = '%s/results/ttbar' % os.environ['ANALYSES_PROJECT']
+input_dir = '%s/inputs/ttbar/%s' % (os.environ['ANALYSES_PROJECT'], os.environ['jobid'])
+output_dir = '%s/results/ttbar/%s' % (os.environ['ANALYSES_PROJECT'], os.environ['jobid'])
 
 in_fname = '%s/ttJets.root' % input_dir
 out_fname = '%s/alpha_hists.root' % output_dir # write to results/ttbar directory

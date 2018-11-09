@@ -3,17 +3,19 @@ import matplotlib.pyplot as plt
 from scipy import interpolate
 from pdb import set_trace
 import pickle
+import Utilities.python.prettyjson as prettyjson
 
-# import prettyjson file from parent dir
-import os,sys,inspect
-currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-parentdir = os.path.dirname(currentdir)
-sys.path.insert(0,parentdir)
-import prettyjson as prettyjson
+## import prettyjson file from parent dir
+#import os,sys,inspect
+#currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+#parentdir = os.path.dirname(currentdir)
+#sys.path.insert(0,parentdir)
+#import prettyjson as prettyjson
 
-outdir = os.getcwd()+'/Plots'
+input_dir = '%s/inputs/ttbar/%s' % (os.environ['ANALYSES_PROJECT'], os.environ['jobid'])
+output_dir = '%s/results/ttbar/%s' % (os.environ['ANALYSES_PROJECT'], os.environ['jobid'])
 
-fname = 'median_Mtt_Mthad.json'
+fname = '%s/median_Mtt_Mthad.json' % input_dir
 median_dict = prettyjson.loads(open(fname).read())
 
 mtt_ranges_to_centers = {
@@ -44,11 +46,11 @@ for alpha_key in median_dict.keys():
 	f = interpolate.interp2d(x, y, z, kind='cubic')
 
 		## save interpolation function for each alpha
-	with open('%s/Alpha_%s_Interpolation.pkl' % (outdir, alpha_key), 'wb') as pkl_file:
+	with open('%s/Alpha_%s_Interpolation.pkl' % (output_dir, alpha_key), 'wb') as pkl_file:
 		pickle.dump(f, pkl_file)
 
 	#interp_loaded = 0
-	#with open('%s/Alpha_%s_Interpolation.pkl' % (outdir, alpha_key), 'rb') as interpolate:
+	#with open('%s/Alpha_%s_Interpolation.pkl' % (output_dir, alpha_key), 'rb') as interpolate:
 	#	interp_loaded = pickle.load(interpolate)
 
 	xnew = np.linspace(0.9,3.0, 500)
@@ -78,7 +80,7 @@ for alpha_key in median_dict.keys():
 	
 	plt.ylim(0.5, 3.0)
 	plt.legend(loc='upper left',fontsize=8, numpoints=1)
-	fig.savefig('%s/Alpha_%s_vs_MTHad.png' % (outdir, alpha_key) )
+	fig.savefig('%s/Alpha_%s_vs_MTHad.png' % (output_dir, alpha_key) )
 	#set_trace()
 	#plt.show()
 
@@ -108,5 +110,5 @@ for alpha_key in median_dict.keys():
 	
 	plt.ylim(0.5, 3.0)
 	plt.legend(loc='upper right',fontsize=8, numpoints=1)
-	fig.savefig('%s/Alpha_%s_vs_MTTBar.png' % (outdir, alpha_key) )
+	fig.savefig('%s/Alpha_%s_vs_MTTBar.png' % (output_dir, alpha_key) )
 	#set_trace()
