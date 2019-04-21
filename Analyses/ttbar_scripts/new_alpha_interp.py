@@ -1,6 +1,6 @@
 '''
 This file is meant to find median alpha values, fit them as alpha(mthad, mtt),
-and dumping the resulting fit values for each bin of 173.1/mthad and mtt.
+and dumping the resulting fit values for each bin of 172.5/mthad and mtt.
 '''
 import os, sys
 #import os, glob, sys, inspect
@@ -19,8 +19,11 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 ## initialize global variables
-input_dir = '%s/inputs/ttbar/%s' % (os.environ['ANALYSES_PROJECT'], os.environ['jobid'])
-output_dir = '%s/results/ttbar/%s' % (os.environ['ANALYSES_PROJECT'], os.environ['jobid'])
+input_dir = '%s/inputs/%s/ttbar' % (os.environ['ANALYSES_PROJECT'], os.environ['jobid'])
+output_dir = '%s/results/%s/ttbar' % (os.environ['ANALYSES_PROJECT'], os.environ['jobid'])
+
+if not os.path.isdir(output_dir):
+    os.makedirs(output_dir)
 
 in_fname = '%s/ttJets.root' % input_dir
 out_fname = '%s/alpha_hists.root' % output_dir # write to results/ttbar directory
