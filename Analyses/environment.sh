@@ -5,6 +5,5 @@ git_dir=$(basename $(dirname $ANALYSES_PROJECT))
 branch=$( git symbolic-ref --short HEAD )
 echo "On branch '$branch' of $git_dir"
 
-
-export jobid=2018Nov08
+source jobid.sh
 echo "jobid=$jobid"
