@@ -1,6 +1,6 @@
 '''
 This file is meant to find median alpha values, fit them as alpha(mthad, mtt),
-and dumping the resulting fit values for each bin of 173.1/mthad and mtt.
+and dumping the resulting fit values for each bin of 172.5/mthad and mtt.
 '''
 import os, sys
 #import os, glob, sys, inspect
@@ -19,11 +19,14 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 ## initialize global variables
-input_dir = '%s/inputs/ttbar/%s' % (os.environ['ANALYSES_PROJECT'], os.environ['jobid'])
-output_dir = '%s/results/ttbar/%s' % (os.environ['ANALYSES_PROJECT'], os.environ['jobid'])
+jobid = os.environ['jobid']
+input_dir = '%s/inputs/ttbar/%s' % (os.environ['ANALYSES_PROJECT'], jobid)
+output_dir = '%s/results/ttbar/%s' % (os.environ['ANALYSES_PROJECT'], jobid)
+if not os.path.isdir(output_dir):
+    os.makedirs(output_dir)
 
 in_fname = '%s/ttJets.root' % input_dir
-out_fname = '%s/alpha_hists.root' % output_dir # write to results/ttbar directory
+out_fname = '%s/alpha_hists_%s.root' % (output_dir, jobid) # write to results/ttbar directory
 
 directory = '/'.join(['3J', 'nosys', 'Alpha_Correction', 'CORRECT_WJET_CORRECT_Bs'])
 ##
@@ -133,14 +136,13 @@ def write_alphas_to_root(fname='', medians=None, errors=None, xbins=None, ybins=
             ax.yaxis.grid(True, which='major')
             plt.xlabel('$%s$' % hist.xaxis.title)
             plt.ylabel('$%s$' % hist.zaxis.title.rstrip('#').replace('#', '\\'))
-            plt.tight_layout()
+            plt.tight_layout(rect=[0, 0.03, 1, 0.95]) #gets rid of title overlap with canvas
             fig.savefig('%s/%s_AlphaFit.png' % (output_dir, hname) )
             #set_trace()
 
         ## fill alphas from fit parameters for single mtt bin
         elif np.ndim(medians) == 2:
             interp_fit = fit_binned_mtt_medians( medians=medians, xbins=xbins, ybins=ybins, fit_type=fit_func )
-    	    #set_trace()
 
             alpha_hist = Hist2D(output_xbins, output_ybins, name=hname, title='#alpha Fit Values')
             alpha_hist.set_x_title(hist.xaxis.title)
@@ -154,13 +156,13 @@ def write_alphas_to_root(fname='', medians=None, errors=None, xbins=None, ybins=
 
             xnew, ynew = np.mgrid[output_xbins.min():output_xbins.max():500j, output_ybins.min():output_ybins.max():500j]
             plt.pcolor( xnew, ynew, interp_fit(output_xbins, output_ybins).T )
-            plt.colorbar()
+            cbar = plt.colorbar()
+            cbar.set_label('$%s$' % hist.zaxis.title.rstrip('#').replace('#', '\\').split('=')[0], rotation=0)
             ax.xaxis.grid(True, which='major')
             ax.yaxis.grid(True, which='major')
             plt.xlabel('$%s$' % hist.xaxis.title)
             plt.ylabel('$%s$' % hist.yaxis.title.rstrip('#').replace('#', '\\'))
             fig.savefig('%s/%s_AlphaFit.png' % (output_dir, hname) )
-
             #set_trace()
 
         else:
