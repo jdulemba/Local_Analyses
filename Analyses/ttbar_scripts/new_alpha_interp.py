@@ -19,14 +19,25 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 ## initialize global variables
-input_dir = '%s/inputs/%s/ttbar' % (os.environ['ANALYSES_PROJECT'], os.environ['jobid'])
-output_dir = '%s/results/%s/ttbar' % (os.environ['ANALYSES_PROJECT'], os.environ['jobid'])
+jobid = os.environ['jobid']
+ura_proj = os.environ['ANALYSES_PROJECT']
+input_dir = '%s/inputs/%s/ttbar' % (ura_proj, jobid)
+output_dir = '%s/results/%s/ttbar' % (ura_proj, jobid)
+##
+
+## optional input arguments
+parser = argparse.ArgumentParser(description='Create plots and output root file with alpha correction')
+
+parser.add_argument('-infile', default='ttJets', help='Choose input file to use (without .root)')
+parser.add_argument('-outfile', default='alpha_hists_%s' % jobid, help='Choose output filename to use (without .root)')
+args = parser.parse_args()
+##
 
 if not os.path.isdir(output_dir):
     os.makedirs(output_dir)
 
-in_fname = '%s/ttJets.root' % input_dir
-out_fname = '%s/alpha_hists.root' % output_dir # write to results/ttbar directory
+in_fname = '%s/%s.root' % (input_dir, args.infile)
+out_fname = '%s/%s.root' % (output_dir, args.outfile) # write to results/ttbar directory
 
 directory = '/'.join(['3J', 'nosys', 'Alpha_Correction', 'CORRECT_WJET_CORRECT_Bs'])
 ##
@@ -34,7 +45,7 @@ directory = '/'.join(['3J', 'nosys', 'Alpha_Correction', 'CORRECT_WJET_CORRECT_B
 
 ## find and open ttJets file
 if not os.path.isfile(in_fname):
-    print 'ttJets.root not found in %s!' % input_dir
+    print '%s.root not found in %s!' % (args.infile, input_dir)
     sys.exit()
 
 myfile = root_open(in_fname, 'read')
