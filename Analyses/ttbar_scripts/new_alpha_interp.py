@@ -147,14 +147,13 @@ def write_alphas_to_root(fname='', medians=None, errors=None, xbins=None, ybins=
             ax.yaxis.grid(True, which='major')
             plt.xlabel('$%s$' % hist.xaxis.title)
             plt.ylabel('$%s$' % hist.zaxis.title.rstrip('#').replace('#', '\\'))
-            plt.tight_layout()
+            plt.tight_layout(rect=[0, 0.03, 1, 0.95]) #gets rid of title overlap with canvas
             fig.savefig('%s/%s_AlphaFit.png' % (output_dir, hname) )
             #set_trace()
 
         ## fill alphas from fit parameters for single mtt bin
         elif np.ndim(medians) == 2:
             interp_fit = fit_binned_mtt_medians( medians=medians, xbins=xbins, ybins=ybins, fit_type=fit_func )
-    	    #set_trace()
 
             alpha_hist = Hist2D(output_xbins, output_ybins, name=hname, title='#alpha Fit Values')
             alpha_hist.set_x_title(hist.xaxis.title)
@@ -168,13 +167,13 @@ def write_alphas_to_root(fname='', medians=None, errors=None, xbins=None, ybins=
 
             xnew, ynew = np.mgrid[output_xbins.min():output_xbins.max():500j, output_ybins.min():output_ybins.max():500j]
             plt.pcolor( xnew, ynew, interp_fit(output_xbins, output_ybins).T )
-            plt.colorbar()
+            cbar = plt.colorbar()
+            cbar.set_label('$%s$' % hist.zaxis.title.rstrip('#').replace('#', '\\').split('=')[0], rotation=0)
             ax.xaxis.grid(True, which='major')
             ax.yaxis.grid(True, which='major')
             plt.xlabel('$%s$' % hist.xaxis.title)
             plt.ylabel('$%s$' % hist.yaxis.title.rstrip('#').replace('#', '\\'))
             fig.savefig('%s/%s_AlphaFit.png' % (output_dir, hname) )
-
             #set_trace()
 
         else:
