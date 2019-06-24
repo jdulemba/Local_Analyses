@@ -30,7 +30,8 @@ parser = argparse.ArgumentParser(description='Create plots and output root file 
 
 parser.add_argument('-infile', default='ttJets', help='Choose input file to use (without .root)')
 parser.add_argument('-outfile', default='alpha_hists_%s' % jobid, help='Choose output filename to use (without .root)')
-parser.add_argument('--runsys', action='store_true', help='Create alpha plots/dists for systematic variations')
+#parser.add_argument('--runsys', action='store_true', help='Create alpha plots/dists for systematic variations')
+parser.add_argument('-sys', default='nosys', const='nosys', nargs='?', choices=['nosys', 'jes_up', 'jes_down', 'jer_up', 'jer_down', 'all'], help='Choose which systematic to run for alpha plots/dists')
 args = parser.parse_args()
 ##
 
@@ -38,13 +39,10 @@ if not os.path.isdir(output_dir):
     os.makedirs(output_dir)
 
 in_fname = '%s/%s.root' % (input_dir, args.infile)
-out_fname = '%s/%s.root' % (output_dir, args.outfile) # write to results/ttbar directory
+out_fname = '%s/%s_%s.root' % (output_dir, args.outfile, args.sys) # write to results/ttbar directory
 
-systematics = ['nosys']
-if args.runsys:
-    systematics += ['jes_up', 'jes_down', 'jer_up', 'jer_down']
-
-##
+#systematics = ['nosys', 'jes_up', 'jes_down', 'jer_up', 'jer_down'] if args.sys == 'all' else [args.sys]
+systematics = ['nosys', 'jes_up'] if args.sys == 'all' else [args.sys]
 
 
 ## find and open ttJets file
@@ -60,14 +58,13 @@ myfile = root_open(in_fname, 'read')
 fitvars = [
     ('THad_E/Alpha_THad_E_Mtt_vs_Mthad_vs_Alpha'),
     ('THad_P/Alpha_THad_P_Mtt_vs_Mthad_vs_Alpha'),
-    ('THad_M/Alpha_THad_M_Mtt_vs_Mthad_vs_Alpha'),
+    #('THad_M/Alpha_THad_M_Mtt_vs_Mthad_vs_Alpha'),
 ]
     ## create file to store hists for 'THad_E', 'THad_P', and 'THad_M'
 with root_open( out_fname, 'w' ) as out:# write to results/ttbar directory
     for sys in systematics:
         outdir = out.mkdir(sys)
         outdir.cd()
-    #out.cd()
 
 
 def fit_single_mtt_medians( medians, errors, xbins, output_xbins, fit_type ):
@@ -190,6 +187,8 @@ def write_alphas_to_root(sysname='', fname='', medians=None, errors=None, xbins=
         outdir.WriteTObject(alpha_hist, hname)
         #alpha_hist.Write()
         print '\n%s written to %s' % (hname, fname)
+
+    out.Close()
 
 
 #set_trace()
