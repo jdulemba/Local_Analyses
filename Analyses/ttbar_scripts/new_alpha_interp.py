@@ -30,8 +30,7 @@ parser = argparse.ArgumentParser(description='Create plots and output root file 
 
 parser.add_argument('-infile', default='ttJets', help='Choose input file to use (without .root)')
 parser.add_argument('-outfile', default='alpha_hists_%s' % jobid, help='Choose output filename to use (without .root)')
-#parser.add_argument('--runsys', action='store_true', help='Create alpha plots/dists for systematic variations')
-parser.add_argument('-sys', default='nosys', const='nosys', nargs='?', choices=['nosys', 'jes_up', 'jes_down', 'jer_up', 'jer_down', 'all'], help='Choose which systematic to run for alpha plots/dists')
+#parser.add_argument('-sys', default='nosys', const='nosys', nargs='?', choices=['nosys', 'jes_up', 'jes_down', 'jer_up', 'jer_down', 'all'], help='Choose which systematic to run for alpha plots/dists')
 args = parser.parse_args()
 ##
 
@@ -39,10 +38,9 @@ if not os.path.isdir(output_dir):
     os.makedirs(output_dir)
 
 in_fname = '%s/%s.root' % (input_dir, args.infile)
-out_fname = '%s/%s_%s.root' % (output_dir, args.outfile, args.sys) # write to results/ttbar directory
+out_fname = '%s/%s.root' % (output_dir, args.outfile) # write to results/ttbar directory
 
-#systematics = ['nosys', 'jes_up', 'jes_down', 'jer_up', 'jer_down'] if args.sys == 'all' else [args.sys]
-systematics = ['nosys', 'jes_up'] if args.sys == 'all' else [args.sys]
+directory = '3J/nosys/Alpha_Correction/right'
 
 
 ## find and open ttJets file
@@ -58,13 +56,11 @@ myfile = root_open(in_fname, 'read')
 fitvars = [
     ('THad_E/Alpha_THad_E_Mtt_vs_Mthad_vs_Alpha'),
     ('THad_P/Alpha_THad_P_Mtt_vs_Mthad_vs_Alpha'),
-    #('THad_M/Alpha_THad_M_Mtt_vs_Mthad_vs_Alpha'),
 ]
     ## create file to store hists for 'THad_E', 'THad_P', and 'THad_M'
 with root_open( out_fname, 'w' ) as out:# write to results/ttbar directory
-    for sys in systematics:
-        outdir = out.mkdir(sys)
-        outdir.cd()
+    outdir = out.mkdir('nosys')
+    outdir.cd()
 
 
 def fit_single_mtt_medians( medians, errors, xbins, output_xbins, fit_type ):
@@ -115,7 +111,7 @@ def fit_binned_mtt_medians( medians, xbins, ybins , fit_type ):
     return fit
 #set_trace()
 
-def write_alphas_to_root(sysname='', fname='', medians=None, errors=None, xbins=None, ybins=None, output_xbins=None, output_ybins=None, hname=''):
+def write_alphas_to_root(fname='', medians=None, errors=None, xbins=None, ybins=None, output_xbins=None, output_ybins=None, hname=''):
 
     fit_func = ""
     if '1d' in hname: fit_func = "pol1"
@@ -126,7 +122,7 @@ def write_alphas_to_root(sysname='', fname='', medians=None, errors=None, xbins=
 
     with root_open( fname, 'update' ) as out:
 
-        outdir = out.GetDirectory(sysname)
+        outdir = out.GetDirectory('nosys')
         outdir.cd()
 
         fig, ax = plt.subplots()
@@ -152,7 +148,7 @@ def write_alphas_to_root(sysname='', fname='', medians=None, errors=None, xbins=
             plt.xlabel('$%s$' % hist.xaxis.title)
             plt.ylabel('$%s$' % hist.zaxis.title.rstrip('#').replace('#', '\\'))
             plt.tight_layout(rect=[0, 0.03, 1, 0.95]) #gets rid of title overlap with canvas
-            fig.savefig('%s/%s_AlphaFit_%s.png' % (output_dir, hname, sysname) )
+            fig.savefig('%s/%s_AlphaFit.png' % (output_dir, hname) )
             #set_trace()
 
         ## fill alphas from fit parameters for single mtt bin
@@ -177,7 +173,7 @@ def write_alphas_to_root(sysname='', fname='', medians=None, errors=None, xbins=
             ax.yaxis.grid(True, which='major')
             plt.xlabel('$%s$' % hist.xaxis.title)
             plt.ylabel('$%s$' % hist.yaxis.title.rstrip('#').replace('#', '\\'))
-            fig.savefig('%s/%s_AlphaFit_%s.png' % (output_dir, hname, sysname) )
+            fig.savefig('%s/%s_AlphaFit.png' % (output_dir, hname) )
             #set_trace()
 
         else:
@@ -193,52 +189,49 @@ def write_alphas_to_root(sysname='', fname='', medians=None, errors=None, xbins=
 
 #set_trace()
 
-for sys in systematics:
-    for hvar in fitvars:
-        #directories = ['/'.join(['3J', sys, 'Alpha_Correction', 'CORRECT_WJET_CORRECT_Bs']) for sys in systematics]
-        hname = '/'.join(['3J', sys, 'Alpha_Correction', 'CORRECT_WJET_CORRECT_Bs', hvar])
-        #hname = '/'.join([directory, hvar])
-        hist = asrootpy(myfile.Get(hname)).Clone()
-    
-        if hist.Integral() == 0:
-            continue
-    
-            ## define bin edges for future rebinning
-        mthad_bins = np.linspace( hist.GetXaxis().GetBinLowEdge(1), hist.GetXaxis().GetBinUpEdge(hist.GetNbinsX()), hist.GetNbinsX()+1 )
-        #mtt_bins = np.linspace( hist.GetYaxis().GetBinLowEdge(1), hist.GetYaxis().GetBinUpEdge(hist.GetNbinsY()), hist.GetNbinsY()+1 )
-        alpha_bins = np.linspace( hist.GetZaxis().GetBinLowEdge(1), hist.GetZaxis().GetBinUpEdge(hist.GetNbinsZ()), hist.GetNbinsZ()+1 )
-    
-        #set_trace()
-    
-        #mthad_bins = np.linspace(0.9, 2.5, 9)
-        mtt_bins = np.array([200., 350., 400., 500., 700., 1000., 2000.])
-        hist = RebinView.newRebin3D(hist, mthad_bins, mtt_bins, alpha_bins)
-    
-        mthad_out_bins = np.linspace(min(mthad_bins), max(mthad_bins), 500)
-        mtt_out_bins = np.linspace(min(mtt_bins), max(mtt_bins), 500)
-    
-            ## get medians for single bin of mtt
-        medians, median_errors = fncts.median_from_3d_hist(hist, projection='zx', xbins=mthad_bins, ybins=alpha_bins)
-    
-    
-            ## get medians for all bins of mtt
-        binned_mtt_medians = np.zeros( ( hist.GetNbinsY(), hist.GetNbinsX() ) )
-        binned_mtt_errors = np.zeros( ( hist.GetNbinsY(), hist.GetNbinsX() ) )
-        for ybin in range(1, hist.GetNbinsY()+1):
-    
-            h3d_yslice = hist.Clone()
-            h3d_yslice.GetYaxis().SetRange(ybin, ybin+1)
-    
-            meds, med_errors = fncts.median_from_3d_hist(h3d_yslice, projection='zx', xbins=mthad_bins, ybins=alpha_bins)
-            binned_mtt_medians[ybin-1] = meds
-            binned_mtt_errors[ybin-1] = med_errors
-    
-            ## make hists and write them to a root file
-        for fit_degree in ['1d', '2d']:
-                ## entire mtt range
-            write_alphas_to_root(sysname=sys, fname=out_fname, medians=medians, errors=median_errors, xbins=mthad_bins, output_xbins=mthad_out_bins, hname='%s_All_%s' % (hvar.split('/')[0], fit_degree) )
-                ## mtt range binned
-            write_alphas_to_root(sysname=sys, fname=out_fname, medians=binned_mtt_medians, errors=binned_mtt_errors, xbins=mthad_bins, ybins=mtt_bins, output_xbins=mthad_out_bins, output_ybins=mtt_out_bins, hname='%s_Mtt_%s' % (hvar.split('/')[0], fit_degree) )
+for hvar in fitvars:
+    hname = '/'.join([directory, hvar])
+    hist = asrootpy(myfile.Get(hname)).Clone()
+
+    if hist.Integral() == 0:
+        continue
+
+        ## define bin edges for future rebinning
+    mthad_bins = np.linspace( hist.GetXaxis().GetBinLowEdge(1), hist.GetXaxis().GetBinUpEdge(hist.GetNbinsX()), hist.GetNbinsX()+1 )
+    #mtt_bins = np.linspace( hist.GetYaxis().GetBinLowEdge(1), hist.GetYaxis().GetBinUpEdge(hist.GetNbinsY()), hist.GetNbinsY()+1 )
+    alpha_bins = np.linspace( hist.GetZaxis().GetBinLowEdge(1), hist.GetZaxis().GetBinUpEdge(hist.GetNbinsZ()), hist.GetNbinsZ()+1 )
 
     #set_trace()
+
+    #mthad_bins = np.linspace(0.9, 2.5, 9)
+    mtt_bins = np.array([200., 350., 400., 500., 700., 1000., 2000.])
+    hist = RebinView.newRebin3D(hist, mthad_bins, mtt_bins, alpha_bins)
+
+    mthad_out_bins = np.linspace(min(mthad_bins), max(mthad_bins), 500)
+    mtt_out_bins = np.linspace(min(mtt_bins), max(mtt_bins), 500)
+
+        ## get medians for single bin of mtt
+    medians, median_errors = fncts.median_from_3d_hist(hist, projection='zx', xbins=mthad_bins, ybins=alpha_bins)
+
+
+        ## get medians for all bins of mtt
+    binned_mtt_medians = np.zeros( ( hist.GetNbinsY(), hist.GetNbinsX() ) )
+    binned_mtt_errors = np.zeros( ( hist.GetNbinsY(), hist.GetNbinsX() ) )
+    for ybin in range(1, hist.GetNbinsY()+1):
+
+        h3d_yslice = hist.Clone()
+        h3d_yslice.GetYaxis().SetRange(ybin, ybin+1)
+
+        meds, med_errors = fncts.median_from_3d_hist(h3d_yslice, projection='zx', xbins=mthad_bins, ybins=alpha_bins)
+        binned_mtt_medians[ybin-1] = meds
+        binned_mtt_errors[ybin-1] = med_errors
+
+        ## make hists and write them to a root file
+    for fit_degree in ['1d', '2d']:
+            ## entire mtt range
+        write_alphas_to_root(fname=out_fname, medians=medians, errors=median_errors, xbins=mthad_bins, output_xbins=mthad_out_bins, hname='%s_All_%s' % (hvar.split('/')[0], fit_degree) )
+            ## mtt range binned
+        write_alphas_to_root(fname=out_fname, medians=binned_mtt_medians, errors=binned_mtt_errors, xbins=mthad_bins, ybins=mtt_bins, output_xbins=mthad_out_bins, output_ybins=mtt_out_bins, hname='%s_Mtt_%s' % (hvar.split('/')[0], fit_degree) )
+
+#set_trace()
 
