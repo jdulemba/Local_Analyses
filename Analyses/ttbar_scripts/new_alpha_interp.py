@@ -228,8 +228,8 @@ for hvar in fitvars:
         ## make hists and write them to a root file
     for fit_degree in ['1d', '2d']:
                 ## entire mtt range
-            write_alphas_to_root(fname=out_fname, medians=medians, errors=median_errors, xbins=mthad_bins, output_xbins=mthad_out_bins, hname='%s_All_%s' % (hvar.split('/')[0], fit_degree) )
-                ## mtt range binned
-            write_alphas_to_root(fname=out_fname, medians=binned_mtt_medians, errors=binned_mtt_errors, xbins=mthad_bins, ybins=mtt_bins, output_xbins=mthad_out_bins, output_ybins=mtt_out_bins, hname='%s_Mtt_%s' % (hvar.split('/')[0], fit_degree) )
+        write_alphas_to_root(fname=out_fname, medians=medians, errors=median_errors, xbins=mthad_bins, output_xbins=mthad_out_bins, hname='%s_All_%s' % (hvar.split('/')[0], fit_degree) )
+            ## mtt range binned
+        write_alphas_to_root(fname=out_fname, medians=binned_mtt_medians, errors=binned_mtt_errors, xbins=mthad_bins, ybins=mtt_bins, output_xbins=mthad_out_bins, output_ybins=mtt_out_bins, hname='%s_Mtt_%s' % (hvar.split('/')[0], fit_degree) )
     
 #set_trace()
