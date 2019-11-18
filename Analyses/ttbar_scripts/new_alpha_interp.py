@@ -1,9 +1,11 @@
+#! /usr/bin/env python
+
 '''
 This file is meant to find median alpha values, fit them as alpha(mthad, mtt),
 and dumping the resulting fit values for each bin of 172.5/mthad and mtt.
 '''
+
 import os, sys
-#import os, glob, sys, inspect
 from rootpy.io import root_open
 from rootpy import asrootpy
 from pdb import set_trace
@@ -30,7 +32,6 @@ parser = argparse.ArgumentParser(description='Create plots and output root file 
 
 parser.add_argument('-infile', default='ttJets', help='Choose input file to use (without .root)')
 parser.add_argument('-outfile', default='alpha_hists_%s' % jobid, help='Choose output filename to use (without .root)')
-#parser.add_argument('-sys', default='nosys', const='nosys', nargs='?', choices=['nosys', 'jes_up', 'jes_down', 'jer_up', 'jer_down', 'all'], help='Choose which systematic to run for alpha plots/dists')
 args = parser.parse_args()
 ##
 
